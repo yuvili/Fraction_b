@@ -1,9 +1,9 @@
 #include <iostream>
 #include <cmath>
-#include<math.h>
+#include <math.h>
 #include "Fraction.hpp"
 #include <string>
-#include<stdexcept>
+#include <stdexcept>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -113,32 +113,21 @@ namespace ariel{
     }
 
     Fraction Fraction::operator+(const Fraction& fraction2){
-        float number1 = (numerator == 0) ? 0.0 : ((float)numerator/(float)denominator);
-        float number2 = (fraction2.numerator == 0) ? 0.0 : ((float)fraction2.numerator/(float)fraction2.denominator);
+        int multi1 = check_overflow_multi(numerator, fraction2.denominator);
+        int multi2 = check_overflow_multi(fraction2.numerator, denominator);
+        
+        int common_divider = check_overflow_multi(denominator, fraction2.denominator);
+        int newNumerator = check_overflow_add(multi1, multi2);
 
-        if((number1 + number2) > std::numeric_limits<float>::max()){
-            throw std::overflow_error("Result is too big.");
-        }
-        if((number1 + number2) < std::numeric_limits<int>::min()){
-            throw std::overflow_error("Result is too small.");
-        }
-
-        int gcdRes = gcd(denominator, fraction2.denominator);
-        int common_divider = (denominator*fraction2.denominator)/gcdRes;
-        int newNumerator = (numerator*(common_divider/denominator)) + (fraction2.numerator*(common_divider/fraction2.denominator));
         return Fraction(newNumerator, common_divider);
     }
 
     Fraction Fraction::operator-(const Fraction& fraction2){
-        int gcdRes = gcd(denominator, fraction2.denominator);
-        int common_divider = (denominator*fraction2.denominator)/gcdRes;
-        int newNumerator = (numerator*(common_divider/denominator)) - (fraction2.numerator*(common_divider/fraction2.denominator));
-        if(newNumerator/common_divider>std::numeric_limits<int>::max()){
-            throw std::overflow_error("Result is too big.");
-        }
-        if(newNumerator/common_divider<std::numeric_limits<int>::min()){
-            throw std::overflow_error("Result is too small.");
-        }
+        int multi1 = check_overflow_multi(numerator, fraction2.denominator);
+        int multi2 = check_overflow_multi(fraction2.numerator, denominator);
+        
+        int common_divider = check_overflow_multi(denominator, fraction2.denominator);
+        int newNumerator = check_overflow_sub(multi1, multi2);
 
         return Fraction(newNumerator, common_divider);
     }
@@ -148,31 +137,23 @@ namespace ariel{
             throw std::runtime_error("Can't devide by 0");
         }
 
-        int newNumerator = numerator*fraction2.denominator;
-        int newDenom = denominator*fraction2.numerator;
+        int newNumerator = check_overflow_multi(numerator, fraction2.denominator);
+        int common_divider = check_overflow_multi(fraction2.numerator, denominator);
 
-         if(newNumerator/newDenom>std::numeric_limits<int>::max()){
-            throw std::overflow_error("Result is too big.");
-        }
-        if(newNumerator/newDenom<std::numeric_limits<int>::min()){
-            throw std::overflow_error("Result is too small.");
-        }
-
-        return Fraction(newNumerator, newDenom);
+        return Fraction(newNumerator, common_divider);
     }
 
     Fraction Fraction::operator*(const Fraction& fraction2){
-        int newNumerator = numerator*fraction2.numerator;
-        int newDenom = denominator*fraction2.denominator;
-        
-        if(newNumerator/newDenom>std::numeric_limits<int>::max()){
+        if((long long)(numerator*fraction2.numerator) > std::numeric_limits<int>::max()){
             throw std::overflow_error("Result is too big.");
         }
-        if(newNumerator/newDenom<std::numeric_limits<int>::min()){
+        if((long long)(numerator*fraction2.numerator) < std::numeric_limits<int>::min()){
             throw std::overflow_error("Result is too small.");
         }
+        int newNumerator = check_overflow_multi(numerator, fraction2.numerator);
+        int common_divider = check_overflow_multi(denominator, fraction2.denominator);
 
-        return Fraction(newNumerator, newDenom);
+        return Fraction(newNumerator, common_divider);
     }
 
     bool Fraction::operator>(const Fraction& fraction2){
@@ -200,8 +181,8 @@ namespace ariel{
     }
 
     bool Fraction::operator==(const Fraction& fraction2){
-        float number1 = (numerator == 0) ? 0.0 : ((float)numerator/(float)denominator);
-        float number2 = (fraction2.numerator == 0) ? 0.0 : ((float)fraction2.numerator/(float)fraction2.denominator);
+        int number1 = (numerator == 0) ? 0.0 : ((int)(((float)numerator/(float)denominator))*1000.0);
+        int number2 = (fraction2.numerator == 0) ? 0.0 : ((int)(((float)fraction2.numerator/(float)fraction2.denominator))*1000.0);
         return number1 == number2;
     }
 

@@ -1,10 +1,48 @@
 #ifndef Fraction_HPP
 #define Fraction_HPP
+#include <cmath>
+#include <math.h>
 #include <string>
+#include <stdexcept>
 using namespace std;
 
 namespace ariel{
 class Fraction{
+    private:
+     // Overflow check
+        static const int max_int = std::numeric_limits<int>::max();
+        static const int min_int = std::numeric_limits<int>::min();
+        
+        static int check_overflow_multi(int number1, int number2) {
+            if(number2 > 0 && (number1 > (max_int / number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 < 0 && (number1 < (max_int / number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1*number2;
+        }
+
+        static int check_overflow_add(int number1, int number2) {
+            if(number2 > 0 && (number1 > (max_int - number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 < 0 && (number1 < (min_int - number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1+number2;
+        }
+
+        static int check_overflow_sub(int number1, int number2) {
+            if(number2 < 0 && (number1 > (max_int + number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 > 0 && (number1 < (min_int + number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1-number2;
+        }
+
     public:
         Fraction();
         Fraction(int, int);
@@ -73,6 +111,7 @@ class Fraction{
         friend bool operator<(float num, const Fraction& frac);
         friend bool operator<=(float num, const Fraction& frac);
         friend bool operator==(float, const Fraction& frac);
+
 };
 };
 #endif
