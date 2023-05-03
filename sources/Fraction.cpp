@@ -28,6 +28,40 @@ namespace ariel{
         }
     }
 
+    // Overflow check
+        static const int max_int = std::numeric_limits<int>::max();
+        static const int min_int = std::numeric_limits<int>::min();
+        
+        static int check_overflow_multi(int number1, int number2) {
+            if(number2 > 0 && (number1 > (max_int / number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 < 0 && (number1 < (max_int / number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1*number2;
+        }
+
+        static int check_overflow_add(int number1, int number2) {
+            if(number2 > 0 && (number1 > (max_int - number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 < 0 && (number1 < (min_int - number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1+number2;
+        }
+
+        static int check_overflow_sub(int number1, int number2) {
+            if(number2 < 0 && (number1 > (max_int + number2))){
+                throw std::overflow_error("Result is too big.");
+            }
+            if(number2 > 0 && (number1 < (min_int + number2))){
+                throw std::overflow_error("Result is too small.");
+            }
+            return number1-number2;
+        }
+
     Fraction::Fraction() {}
 
     Fraction::Fraction(int number1, int number2){
@@ -53,23 +87,11 @@ namespace ariel{
         else{
             number = floor(1000*number)/1000; // ignore digit after 3 beyond the desimal point
 
-            // Fetch integral value of the decimal
             double intVal = floor(number);
-        
-            // Fetch fractional part of the decimal
             double fVal = number - intVal;
-        
-            // Consider precision value to
-            // convert fractional part to
-            // integral equivalent
             const int pVal = 1000;
-        
-            // Calculate GCD of integral
-            // equivalent of fractional
-            // part and precision value
             int gcdVal = gcd((int)round(fVal * pVal), pVal);
         
-            // Calculate num and deno
             denominator = pVal / gcdVal;
             numerator = (intVal * denominator) + round(fVal * pVal) / gcdVal;
         }
@@ -270,22 +292,29 @@ namespace ariel{
             return Fraction(numerator, denominator);
         }
         float number = floor(1000*num)/1000; // ignore digit after 3 beyond the desimal point
+        Fraction floatFrac(number);
+        int multi1 = check_overflow_multi(numerator, floatFrac.denominator);
+        int multi2 = check_overflow_multi(floatFrac.numerator, denominator);
+        
+        int common_divider = check_overflow_multi(denominator, floatFrac.denominator);
+        int newNumerator = check_overflow_add(multi1, multi2);
 
-        float fractionFloat = (float)numerator/(float)denominator;
-        float result = fractionFloat + number;
-        return Fraction(result);
+        return Fraction(newNumerator, common_divider);
     }
 
     Fraction Fraction::operator-(const float& num){
         if(num == 0){
             return Fraction(numerator, denominator);
         }
-
         float number = floor(1000*num)/1000; // ignore digit after 3 beyond the desimal point
+        Fraction floatFrac(number);
 
-        float fractionFloat = (float)numerator/(float)denominator;
-        float result = fractionFloat - number;
-        return Fraction(result);
+        int multi1 = check_overflow_multi(numerator, floatFrac.denominator);
+        int multi2 = check_overflow_multi(floatFrac.numerator, denominator);
+        
+        int common_divider = check_overflow_multi(denominator, floatFrac.denominator);
+        int newNumerator = check_overflow_sub(multi1, multi2);
+        return Fraction(newNumerator, common_divider);
     }
 
     Fraction Fraction::operator/(const float& num){
@@ -343,9 +372,16 @@ namespace ariel{
         if(num == 0){
             return Fraction(frac.numerator, frac.denominator);
         }
-        float fractionFloat = (float)frac.numerator/(float)frac.denominator;
-        float result = fractionFloat + num;
-        return Fraction(result);
+      
+        float number = floor(1000*num)/1000; // ignore digit after 3 beyond the desimal point
+        Fraction floatFrac(number);
+        int multi1 = check_overflow_multi(frac.numerator, floatFrac.denominator);
+        int multi2 = check_overflow_multi(floatFrac.numerator, frac.denominator);
+        
+        int common_divider = check_overflow_multi(frac.denominator, floatFrac.denominator);
+        int newNumerator = check_overflow_add(multi1, multi2);
+
+        return Fraction(newNumerator, common_divider);
     }
 
     Fraction operator-(float num, const Fraction& frac){
@@ -353,9 +389,15 @@ namespace ariel{
             int newNumerator = 0 - frac.numerator;
             return Fraction(newNumerator, frac.denominator);
         }
-        float fractionFloat = (float)frac.numerator/(float)frac.denominator;
-        float result = num - fractionFloat;
-        return Fraction(result);
+        float number = floor(1000*num)/1000; // ignore digit after 3 beyond the desimal point
+        Fraction floatFrac(number);
+
+        int multi1 = check_overflow_multi(floatFrac.numerator, frac.denominator);
+        int multi2 = check_overflow_multi(frac.numerator, floatFrac.denominator);
+        
+        int common_divider = check_overflow_multi(frac.denominator, floatFrac.denominator);
+        int newNumerator = check_overflow_sub(multi1, multi2);
+        return Fraction(newNumerator, common_divider);
     }
 
     Fraction operator/(float num, const Fraction& frac){
